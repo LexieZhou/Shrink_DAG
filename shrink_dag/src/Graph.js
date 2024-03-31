@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import * as d3 from 'd3';
-import linkData from './data/links.json';
+import linkData from './data/updated_links.json';
 import nodeData from './data/nodes.json';
+import { getHideNodesOnCollapse } from './GetHideNodesOnCollapse';
 import './Graph.css';
 
 function Graph() {
@@ -91,7 +92,55 @@ function Graph() {
         .append('circle')
         .attr('class', 'node')
         .attr('r', 6)
-        .attr('fill', 'steelblue');
+        .attr('fill', 'steelblue')
+        .on("click", function(event, d) {
+          const nodeId = d.id;
+          const { toHideNodeIds, toHideEdges } = getHideNodesOnCollapse(linksData, nodeId);
+          console.log('hideNodes:', toHideNodeIds);
+          console.log('hideLinks:', toHideEdges);
+
+          let hideNodeIds = [];
+          toHideNodeIds.forEach(node => {
+            hideNodeIds.push(node.id);
+          });
+          let hideLinkIds = [];
+          toHideEdges.forEach(link => {
+            hideLinkIds.push(link.id);
+          });
+
+          // Toggle hide and visible for nodes
+          nodes.filter(node => hideNodeIds.includes(node.id))
+          .attr('visibility', function() {
+            const visibility = d3.select(this).attr('visibility');
+            return visibility === 'hidden' ? 'visible' : 'hidden';
+          });
+
+          // Toggle hide and visible for links
+          links.filter(link => hideLinkIds.includes(link.id))
+          .attr('visibility', function() {
+            const visibility = d3.select(this).attr('visibility');
+            return visibility === 'hidden' ? 'visible' : 'hidden';
+          });
+        });
+      
+        var label = g.append("g")
+        .attr("class", "labels")
+        .selectAll("text")
+        .data(nodesData)
+        .enter().append("text")
+        .text(function(d) { 
+          if (d.version) {
+            return d.id + ' ' + d.name + ' ' + d.version;
+          } else {
+            return d.id + ' ' + d.name;
+          }
+        })
+        .attr('font-size', 6)
+        .attr('dx', 12)
+        .attr('dy', 4);
+
+        // const numberOfNodes = nodes.size();
+        // console.log("Number of nodes:", numberOfNodes); 1095
       
       //d3 zoom
     var initialScale = 0.4;
@@ -126,7 +175,11 @@ function Graph() {
           .attr("y1", (d) => d.source.y)
           .attr("x2", (d) => d.target.x)
           .attr("y2", (d) => d.target.y);
-            
+        
+        label
+          .attr("x", function(d) { return d.x; })
+          .attr("y", function (d) { return d.y; });
+        
         });
     }
   }, [nodesData, linksData]);
