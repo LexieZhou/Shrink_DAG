@@ -84,6 +84,25 @@ function Graph() {
         .attr('marker-end', 'url(#arrowhead)')
         .attr('stroke-dasharray', (d) => (d.properties.verdict === 'no' ? '5,5' : null));
       
+      const labels = g.append("g")
+        .attr("class", "labels")
+        .selectAll("text")
+        .data(nodesData)
+        .enter().append("text")
+        .text(function(d) { 
+          if (d.version) {
+            return d.id + ' ' + d.name + ' ' + d.version;
+          } else {
+            return d.id + ' ' + d.name;
+          }
+        })
+        .attr('font-size', 6)
+        .attr('dx', 12)
+        .attr('dy', 4)
+        .attr('id', function(d) {
+          return d.id; // Add a unique ID based on the node ID
+        });
+      
       const nodes = g.append('g')
         .attr('class', 'nodes')
         .selectAll('.node')
@@ -121,23 +140,13 @@ function Graph() {
             const visibility = d3.select(this).attr('visibility');
             return visibility === 'hidden' ? 'visible' : 'hidden';
           });
+
+          labels.filter(label => hideNodeIds.includes(label.id))
+          .attr('visibility', function() {
+            const visibility = d3.select(this).attr('visibility');
+            return visibility === 'hidden' ? 'visible' : 'hidden';
+          });
         });
-      
-        var label = g.append("g")
-        .attr("class", "labels")
-        .selectAll("text")
-        .data(nodesData)
-        .enter().append("text")
-        .text(function(d) { 
-          if (d.version) {
-            return d.id + ' ' + d.name + ' ' + d.version;
-          } else {
-            return d.id + ' ' + d.name;
-          }
-        })
-        .attr('font-size', 6)
-        .attr('dx', 12)
-        .attr('dy', 4);
 
         // const numberOfNodes = nodes.size();
         // console.log("Number of nodes:", numberOfNodes); 1095
@@ -176,7 +185,7 @@ function Graph() {
           .attr("x2", (d) => d.target.x)
           .attr("y2", (d) => d.target.y);
         
-        label
+        labels
           .attr("x", function(d) { return d.x; })
           .attr("y", function (d) { return d.y; });
         
