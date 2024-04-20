@@ -1,37 +1,30 @@
 import React, { useEffect, useState } from 'react';
-import sheetData from './data/filtered_users_data.json';
+import sheetData from './data/5MB.json';
+import useWebWorker from './worker';
 
 function Sheet() {
-  const [sheetsData, setSheetsData] = useState(null); 
-
-  useEffect(() => {
-    const fetchSheetData = async () => {
-      try {
-        setSheetsData(sheetData);
-
-      } catch (error) {
-        console.error('Error fetching sheet data:', error);
-      }
+  function workerFunction() {
+    this.onmessage = function(e) {
+      this.postMessage(e.data)
     };
-
-    fetchSheetData();
-
-  }, []);
+  }
+  const { result, error, loading } = useWebWorker(workerFunction, sheetData);
 
   useEffect(() => {
-    if (!sheetsData) {
+    if (loading) console.log("Loading...");
+    if (error) console.error("Error:", error);
+    if (!result) {
       console.log('No sheet data');
       return;
     } else {
-      console.log('Sheet data:', sheetsData);
+      console.log('Sheet data:', result);
     }
     const canvas = document.getElementById("canvasTable");
     const context = canvas.getContext("2d");
-    console.log(sheetsData[0]);
 
     // Logic to find border width and border height
-    let bw = Object.keys(sheetsData[0]).length * 200; // Calculating Border Width
-    let bh = (sheetsData.length + 1) * 40; // Calculating Border Height
+    let bw = Object.keys(result[0]).length * 200; // Calculating Border Width
+    let bh = (result.length + 1) * 40; // Calculating Border Height
 
     const p = 10; // Margin
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -52,14 +45,14 @@ function Sheet() {
     context.strokeStyle = "black";
     context.stroke();
 
-    let keys = Object.keys(sheetsData[0]); // finding keys in each JSON object
+    let keys = Object.keys(result[0]); // finding keys in each JSON object
 
     // To print the values in the Table Excluding Header
     for (let y = 80, count = 0; y <= bh; y += 40) {
       for (let x = 0, keyCount = 0; x < bw; x += 200) {
         context.font = "normal 16px Verdana";
         context.fillStyle = "black";
-        context.fillText(sheetsData[count][keys[keyCount]], 0.5 + x + p + 5, y);
+        context.fillText(result[count][keys[keyCount]], 0.5 + x + p + 5, y);
         ++keyCount;
       }
       ++count;
@@ -77,7 +70,7 @@ function Sheet() {
     context.clearRect(11, bh + 11, canvas.width, canvas.height);
     context.clearRect(bw + 11, 9.5, canvas.width, canvas.height);
     context.save(); // to save the context into the Stack
-  }, [sheetsData]);
+  }, [loading, error, result]);
 
   return (
     <div>
