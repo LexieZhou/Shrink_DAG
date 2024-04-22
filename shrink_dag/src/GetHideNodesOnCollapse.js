@@ -2,7 +2,6 @@ import { uniq, cloneDeep } from 'lodash';
 
 export const getHideNodesOnCollapse = (edges, startNodeId) => {
   console.log('id:', startNodeId);
-  const allCurrentShowNodeIds = new Set();
   const toHideNodeIds = []; //要隐藏的点
   const toHideEdges = []; //要隐藏的边
 
@@ -40,6 +39,8 @@ export const getHideNodesOnCollapse = (edges, startNodeId) => {
     startNodeOutNodes = [];
   }
   console.log('startNodeOutNodes: ', startNodeOutNodes);
+
+  
   //信号标记队列，统计每个结点被标记删除的次数，写入signalCountMap
   const toMarkNodeQueue = cloneDeep(startNodeOutNodes);
   while (toMarkNodeQueue.length !== 0) {

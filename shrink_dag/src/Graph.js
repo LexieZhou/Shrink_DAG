@@ -114,6 +114,7 @@ function Graph() {
         .attr('fill', 'steelblue')
         .on("click", function(event, d) {
           const nodeId = d.id;
+          // obtain the nodes and links to hide
           const { toHideNodeIds, toHideEdges } = getHideNodesOnCollapse(linksData, nodeId);
           console.log('hideNodes:', toHideNodeIds);
           console.log('hideLinks:', toHideEdges);
